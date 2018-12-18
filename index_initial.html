@@ -21,15 +21,6 @@
 		font-family: arial;
 		font-size: 10px;
 	  }
-	/* Format for paragraph */
-      p {
-        text-align: center;
-        color: gray;
-      }
-	  .title text {
-		font-family: arial;
-		font-size: 8px;
-	  }
 	/* Format for axes */
 	  .axis path,
 	  .axis line {
@@ -45,47 +36,27 @@
     <script type="text/javascript">  
 	  // The function animates the data and also allows the user
 	  // to select a time period for display from a dropdown list
-      function draw(quarter_data) {
+      function draw(gender_data) {
         "use strict";
-		
-		/* Converting quarterly data into annual data */
-		var gender_data = d3.nest()
-			.key(function(v) {return v.Year;})
-			.rollup(function(v) { return {
-			Wcount : d3.mean(v, function(d) {return d.Wcount;}),
-			Wpay : d3.mean(v,function(d) {return d.Wpay;}),
-			Mcount : d3.mean(v, function(d) {return d.Mcount;}),
-			Mpay : d3.mean(v, function(d) {return d.Mpay;})
-			}; })
-			.entries(quarter_data);
-		
-		var margin = 100;
-		var width = 1200 - margin,
+		var margin = 100,
+			width = 1200 - margin,
 			height = 550 - margin;
 		/* Creating a separate array variable for the drop down list */
 		var quart_option = [];
 		var quart_option = gender_data.map( function(d) {
-			return d.key;
+			return d['Period'];
 			}
 			);
-			
 		/* Header for the chart */
 		d3.select("body")
 			  .append("h2")
 			  .text("Manager Count and Earnings US 2008 - 2018");
 		
-		/* Chart description */
-		d3.select("body")
-			  .append("p")
-			  .text("Pay scales have increased in the past 10 years. However the gender pay ratio has remained the same");
-		
 		/* Create the dropdown list */
 		var select = d3.select('body')
 			.append('select')
-			.attr('transform', "translate(" + width/7 + "," + 0 +")" + "rotate(" + 0 + "," + 0 + "," + 0 + ")")
 			.attr('class','select')
 			.on('change',onselect);
-
 			
 		/* Create a canvas for the graph */
 		var svg = d3.select("body")
@@ -201,59 +172,27 @@
 		var Timeperiod = svg.append('text')
 			.attr('class','quarter')
 			.attr('id', 'quartyear')
-			.attr('font-size', '25px')
-			.attr('fill','rgb(0,80,180)')
 			.attr('transform', "translate(" + width/4 + "," + margin +")")
 			.text ("")
 			.style('text-anchor', 'start');
-		
-		var Payratiotext = svg.append('text')
-			.attr('class','quarter')
-			.attr('id', 'ratiotxt')
-			.attr('font-size', '18px')
-			.attr('fill','rgb(0,80,180)')
-			.attr('transform', "translate(" + width/16 + "," + margin +")")
-			.text ("Pay Ratio")
-			.style('text-anchor', 'start');	
-			
-		var Payratio = svg.append('text')
-			.attr('class','quarter')
-			.attr('id', 'ratio')
-			.attr('font-size', '18px')
-			.attr('fill','rgb(0,80,180)')
-			.attr('transform', "translate(" + width/7 + "," + margin +")")
-			.text ("")
-			.style('text-anchor', 'start');
-			
-		var pRatioPos = height;
-			
 		
 		// The function takes a single row of data and updates the chart 
 		function draw_onechart(one_row) {
 				
 			/* Calculate the height, width and position of the two rectangles */
 			var mx = 0;
-			var my = Yscale(one_row.values.Mpay);
-			var mwidth = Xscale(one_row.values.Mcount);
-			var mheight = -Yscale(one_row.values.Mpay);
-			var wx = nXscale(one_row.values.Wcount);
-			var wy = Yscale(one_row.values.Wpay);
-			var wwidth = Xscale(one_row.values.Wcount);
-			var wheight = -Yscale(one_row.values.Wpay);
-			var pratio = one_row.values.Mpay/one_row.values.Wpay;
-			var f = d3.format(".2f");
+			var my = Yscale(one_row['Mpay']);
+			var mwidth = Xscale(one_row['Mcount']);
+			var mheight = -Yscale(one_row['Mpay']);
+			var wx = nXscale(one_row['Wcount']);
+			var wy = Yscale(one_row['Wpay']);
+			var wwidth = Xscale(one_row['Wcount']);
+			var wheight = -Yscale(one_row['Wpay']);
 			
 			d3.select("#quartyear")
 			.transition()
-			.duration(10)
-			.text(one_row.key );
-			
-			/*
-			d3.select("#ratio")
-			.transition()
-			.duration(10)
-			.text(f(pratio));
-			*/
+			.duration(100)
+			.text(one_row['Year'] + " " + one_row['Quarter'] )
 				
 			/* Update the size and position of the rectangles */
 			mRect = d3.select("#mRectg")
@@ -275,51 +214,6 @@
 				.attr('width', wwidth)
 				.attr('height', wheight);
 				
-			/* Display the location of the pay and count coordinate */
-			/* This is displayed as a tiny circle */
-			var mpoint = svg.append('g')
-				.attr('id','mpoint')
-				.attr('transform', "translate(" + width/2 +"," + height + ")" + "rotate(" + 0 + "," + 0 + "," + 0 + ")")
-				.append('circle')
-				.attr('cx', mwidth)
-				.attr('cy', -mheight)
-				.attr('r', 2.5)
-				.style('fill', "rgb(0,60,220)")
-				.style('opacity', "1");
-
-			/* Display the location of the pay and count coordinate */
-			/* This is displayed as a tiny circle */
-			var wpoint = svg.append('g')
-				.attr('id','wpoint')
-				.attr('transform', "translate(" + width/2 +"," + height + ")" + "rotate(" + 0 + "," + 0 + "," + 0 + ")")
-				.append('circle')
-				.attr('cx', wx)
-				.attr('cy', wy)
-				.attr('r', 2.5)
-				.style('fill', "rgb(0,60,220)")
-				.style('opacity', "1");
-			
-			if (quart_idx < gender_data.length) {
-				/* Display the year for the point in the graph */
-				var Payratio = svg.append('text')
-				.attr('class','quarter')
-				.attr('id', 'ratio')
-				.attr('font-size', '16px')
-				.attr('fill','rgb(0,0,255)')
-				.attr('transform', "translate(" + width/16 + "," + pRatioPos +")")
-				.text (one_row.key)
-				.style('text-anchor', 'start');
-				
-				var Payratio = svg.append('text')
-				.attr('class','quarter')
-				.attr('id', 'ratio')
-				.attr('font-size', '16px')
-				.attr('fill','rgb(0,80,180)')
-				.attr('transform', "translate(" + width/10 + "," + pRatioPos +")")
-				.text (f(pratio))
-				.style('text-anchor', 'start');
-			}
-				
 		}
 					
 		/* Use the function above to animate the change in count */
@@ -327,14 +221,14 @@
 		/* the next */
 		var quart_idx = 0;
 		var quarter_repeat = setInterval(function() {
-			pRatioPos = pRatioPos - height/16;	
+				
 			draw_onechart(gender_data[quart_idx]);
 			quart_idx++;
 			if (quart_idx >= gender_data.length) {
 				clearInterval(quarter_repeat);
 				}
 		}
-		, 2000);
+		, 1500);
 
 		/* After animation is complete, allow the user */
 		/* to select any quarter from the dropdown list */
@@ -351,6 +245,7 @@
 
 		/* Update chart based on selected option */
 		function onselect() {
+			debugger;
 			var selectList = d3.select('select');
 			var selectValue = selectList.node().value;
 			draw_onechart(gender_data[selectValue]);
@@ -362,12 +257,12 @@
   <script type="text/javascript">
   /* Use D3 to load the tsv file */
     
-d3.tsv("./ManagersCountnPay.tsv", function(d) {
+d3.tsv("ManagersCountnPay.tsv", function(d) {
         d['Wcount'] = +d['Wcount'];
         d['Wpay'] = +d['Wpay'];
 		d['Mcount'] = +d['Mcount'];
 		d['Mpay'] = +d['Mpay'];
-		d['Year'] = d['Year'];
+		d['Period'] = d['Quarter'] + " " + d['Year'];
         return d;
       }, draw);
   </script>
